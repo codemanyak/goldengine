@@ -317,7 +317,7 @@ public class GOLDParser extends Parser {
         
         if (sourceStatements == null || sourceStatements.trim().length() == 0) {
             addErrorMessage(FormatHelper.formatMessage("messages", "error.no_source")); 
-            return false;            
+            return false;
         }
         
         return parseSourceStatements(new StringReader(sourceStatements));
@@ -331,9 +331,9 @@ public class GOLDParser extends Parser {
         if (sourceReader == null) {
             addErrorMessage(FormatHelper.formatMessage("messages", "error.no_source_reader")); 
             return false;
-        } 
+        }
         
-        getErrorMessages().clear();
+        //getErrorMessages().clear();	// SSO 2017-06-26: was superfluous
         
         // Enable support for indentation sensitive grammars
         useIndentVirtualTerminals = getSymbolByName(VT_INDENT_INCREASE) != null;

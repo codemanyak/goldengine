@@ -53,6 +53,7 @@ import com.creativewidgetworks.goldparser.util.FormatHelper;
  *
  * @author Devin Cook (http://www.DevinCook.com/GOLDParser)
  * @author Ralph Iden (http://www.creativewidgetworks.com), port to Java
+ * @author Kay Gürtzig (mailto:kay.guertzig@fh-erfurt.de) enable bugfix for legacy cgts
  * @version 5.0.0
  */
 public class Parser {
@@ -140,19 +141,45 @@ public class Parser {
     private void consumeBuffer(int count) {
         if (count > 0 && count <= lookaheadBuffer.length()) {
             // Adjust position
+        	// START SSO 2017-06-26 - line counts were wrong
+            //for (int i = 0; i < count; i++) {
+            //    char c = lookaheadBuffer.charAt(i);
+            //    if (c == 0x0A) {
+            //        if (sysPosition.getColumn() > 1) {
+            //            // Increment row if Unix EOLN (LF)
+            //            sysPosition.incrementLine();
+            //        }
+            //    } else if (c == 0x0D) {
+            //        sysPosition.incrementLine();
+            //    } else {
+            //        sysPosition.incrementColumn();
+            //    }
+            //}
+            int lines = 0, columns = 0;
             for (int i = 0; i < count; i++) {
                 char c = lookaheadBuffer.charAt(i);
-                if (c == 0x0A) {
-                    if (sysPosition.getColumn() > 1) {
-                        // Increment row if Unix EOLN (LF)
-                        sysPosition.incrementLine();
+                switch (c) {
+                case 0x0D:
+                    // increment char counter for Windows LF (MacOS would be plain 0x0D)
+                    if (i + 1 != count && lookaheadBuffer.charAt(i + 1) == 0x0A) {
+                        i++;
                     }
-                } else if (c == 0x0D) {
-                    sysPosition.incrementLine();
-                } else {
-                    sysPosition.incrementColumn();
+                    // Fall through
+                case 0x0A:
+                    lines++;
+                    break;
+                default:
+                    columns++;
+                    break;
                 }
             }
+            
+            if (lines != 0) {
+                sysPosition.incrementLine(lines);
+            } else {
+                sysPosition.incrementColumn(columns);
+            }
+            // END SSO 2017-06-26
             
             // Remove the characters
             lookaheadBuffer.delete(0, count);
@@ -680,7 +707,7 @@ public class Parser {
      * either the grammar is accepted or an error occurs.
      * @return ParseMessage
      */
-    protected ParseMessage parse() {
+    public ParseMessage parse() {
         if (!tablesLoaded) {
             return ParseMessage.NOT_LOADED_ERROR;
         }
@@ -763,10 +790,10 @@ public class Parser {
     /*----------------------------------------------------------------------------*/
 
     /**
-     * This method analyzes a token and either:
-     *   1. Makes a SINGLE reduction and pushes a complete Reduction object on the stack
-     *   2. Accepts the token and shifts
-     *   3. Errors and places the expected symbol indexes in the Tokens list.
+     * This method analyzes a token and either:<br/>
+     *   1. Makes a SINGLE reduction and pushes a complete Reduction object on the stack<br/>
+     *   2. Accepts the token and shifts<br/>
+     *   3. Errors and places the expected symbol indexes in the Tokens list.<br/>
      *   
      * @param nextToken to be analyzed
      * @return ParseResult  
@@ -966,7 +993,10 @@ public class Parser {
      * grammar.  It is assumed that version 1.0 files have a maximum of 1 closed
      * comment block and one comment line symbol.
      */
-    private void resolveCommentGroupsForVersion1Grammars() {
+    // START KGU#354 2017-03-09: It was necessary to widen visibility in order to override it
+    //private void resolveCommentGroupsForVersion1Grammars() {
+    protected void resolveCommentGroupsForVersion1Grammars() {
+    // END KGU#354 2017-03-09
         if (isVersion1Format()) {
             Group group;
             Symbol symbolStart = null;

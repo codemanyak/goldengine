@@ -25,14 +25,29 @@ public class Position {
         this.column = position.column;
     }
 
+    /** increment current position by 1 line, reset column to 1 */
     public void incrementLine() {
-        line++;
-        column = 1;
+        this.line++;
+        this.column = 1;
+    }
+
+    /** increment current position by 1 column */
+    public void incrementColumn() {
+        this.column++;
+    }
+
+    // START SSO 2017-06-26 - Added as convenience for Parser.consumeBuffer(int) fix
+    /** increment current position by given lines, reset column to 1 */
+    public void incrementLine(int lines) {
+        this.line += lines;
+        this.column = 1;
     }
     
-    public void incrementColumn() {
-        column++;
+    /** increment current position by given columns */
+    public void incrementColumn(int columns) {
+        this.column += columns;
     }
+    // END SSO 2017-06-26
     
     public void set(Position newPosition) {
         if (newPosition != null) {
