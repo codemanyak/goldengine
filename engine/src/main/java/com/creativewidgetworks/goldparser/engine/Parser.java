@@ -141,7 +141,7 @@ public class Parser {
     private void consumeBuffer(int count) {
         if (count > 0 && count <= lookaheadBuffer.length()) {
             // Adjust position
-        	// START SSO 2017-06-26 - line counts were wrong
+            // START SSO 2017-06-26 - line counts were wrong
             //for (int i = 0; i < count; i++) {
             //    char c = lookaheadBuffer.charAt(i);
             //    if (c == 0x0A) {
